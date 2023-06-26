@@ -4,7 +4,7 @@
 
 ![db-schema]
 
-[db-schema]: ./images/Airbnb-Schema.png
+[db-schema]: ./images/AirBnb-schema.png
 
 ## API Documentation
 
@@ -52,7 +52,7 @@ Returns the information about the current user that is logged in.
 * Require Authentication: true
 * Request
   * Method: GET
-  * URL: /api/users
+  * URL: /api/session
   * Body: none
 
 * Successful Response when there is a logged in user
@@ -93,7 +93,7 @@ information.
 * Require Authentication: false
 * Request
   * Method: POST
-  * URL: /api/users/login
+  * URL: /api/session
   * Headers:
     * Content-Type: application/json
   * Body:
@@ -159,7 +159,7 @@ user's information.
 * Require Authentication: false
 * Request
   * Method: POST
-  * URL: /api/users/signup
+  * URL: /api/users
   * Headers:
     * Content-Type: application/json
   * Body:
@@ -289,7 +289,7 @@ Returns all the spots owned (created) by the current user.
 * Require Authentication: true
 * Request
   * Method: GET
-  * URL: /api/:user/spots
+  * URL: /api/spots/current
   * Body: none
 
 * Successful Response
@@ -600,7 +600,7 @@ Deletes an existing spot.
 * Require proper authorization: Spot must belong to the current user
 * Request
   * Method: DELETE
-  * URL: /api/spots/;id
+  * URL: /api/spots/:id
   * Body: none
 
 * Successful Response
@@ -636,7 +636,7 @@ Returns all the reviews written by the current user.
 * Require Authentication: true
 * Request
   * Method: GET
-  * URL: /api/:user/reviews
+  * URL: /api/reviews/current
   * Body: none
 
 * Successful Response
@@ -984,7 +984,7 @@ Return all the bookings that the current user has made.
 * Require Authentication: true
 * Request
   * Method: GET
-  * URL: /api/users/:id/bookings
+  * URL: /api/bookings/current
   * Body: none
 
 * Successful Response
@@ -1319,7 +1319,7 @@ Delete an existing image for a Spot.
 * Require proper authorization: Spot must belong to the current user
 * Request
   * Method: DELETE
-  * URL: /api/spots/:spotId/images/:imageId
+  * URL: /api/spot-images/:id
   * Body: none
 
 * Successful Response
@@ -1354,7 +1354,7 @@ Delete an existing image for a Review.
 * Require proper authorization: Review must belong to the current user
 * Request
   * Method: DELETE
-  * URL: /api/reviews/:reviewId/images/:imageId
+  * URL: /api/review-images/:id
   * Body: none
 
 * Successful Response
