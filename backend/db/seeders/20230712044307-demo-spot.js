@@ -7,7 +7,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 module.exports = {
-  p: async (queryInterface, Sequelize) => {
+  up: async (queryInterface, Sequelize) => {
     options.tableName = 'Spots';
     return queryInterface.bulkInsert(options, [
       {
@@ -53,7 +53,7 @@ module.exports = {
     options.tableName = 'Spots';
     const Op = Sequelize.Op;
     return queryInterface.bulkDelete(options, {
-      username: { [Op.in]: ["Fake Spot A", "Fake Spot B", "Fake Spot C"] }
+      name: { [Op.in]: ["Fake Spot A", "Fake Spot B", "Fake Spot C"] }
     }, {});
   }
 };
