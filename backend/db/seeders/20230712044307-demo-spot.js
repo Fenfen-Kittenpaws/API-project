@@ -7,10 +7,11 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 module.exports = {
-  p: async (queryInterface, Sequelize) => {
+  up: async (queryInterface, Sequelize) => {
     options.tableName = 'Spots';
     return queryInterface.bulkInsert(options, [
       {
+        ownerId: 2,
         address: "123 Fake street",
         city: "Faketown",
         state: "Fakestate",
@@ -22,6 +23,7 @@ module.exports = {
         price: 123
       },
       {
+        ownerId: 3,
         address: "456 Fake avenue",
         city: "Faketown",
         state: "Fakestate",
@@ -33,6 +35,7 @@ module.exports = {
         price: 321
       },
       {
+        ownerId: 1,
         address: "789 Fake lane",
         city: "Faketown",
         state: "Fakestate",
@@ -50,7 +53,7 @@ module.exports = {
     options.tableName = 'Spots';
     const Op = Sequelize.Op;
     return queryInterface.bulkDelete(options, {
-      username: { [Op.in]: ["Fake Spot A", "Fake Spot B", "Fake Spot C"] }
+      name: { [Op.in]: ["Fake Spot A", "Fake Spot B", "Fake Spot C"] }
     }, {});
   }
 };

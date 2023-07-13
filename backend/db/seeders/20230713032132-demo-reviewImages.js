@@ -1,3 +1,4 @@
+
 'use strict';
 const bcrypt = require("bcryptjs");
 
@@ -8,34 +9,28 @@ if (process.env.NODE_ENV === 'production') {
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    options.tableName = 'Reviews';
+    options.tableName = 'ReviewImages';
     return queryInterface.bulkInsert(options, [
       {
-        userId: 1,
-        spotId: 1,
-        review: 'Awesome',
-        stars: 4
+        reviewId: 1,
+        url: 'https://res.cloudinary.com/dxagb2mui/image/upload/v1689218124/houseA_wog8pm.jpg'
       },
       {
-        userId: 2,
-        spotId: 2,
-        review: 'Super Awesome',
-        stars: 5
+        reviewId: 2,
+        url: 'https://res.cloudinary.com/dxagb2mui/image/upload/v1689218139/houseB_fat7lc.jpg'
       },
       {
-        userId: 3,
-        spotId: 3,
-        review: 'Kind of Awesome',
-        stars: 3
+        reviewId: 3,
+        url: 'https://res.cloudinary.com/dxagb2mui/image/upload/v1689218148/houseC_cejfuu.jpg'
       }
     ], {});
   },
 
   down: async (queryInterface, Sequelize) => {
-    options.tableName = 'Reviews';
+    options.tableName = 'ReviewImages';
     const Op = Sequelize.Op;
     return queryInterface.bulkDelete(options, {
-      spotId: { [Op.in]: [1, 2, 3] }
+      reviewId: { [Op.in]: [1, 2, 3] }
     }, {});
   }
 };
