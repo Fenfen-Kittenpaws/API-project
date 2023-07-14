@@ -12,6 +12,7 @@ router.get('/', async (req, res) => {
     return res.json(spots);
 });
 
+
 // create a spot
 router.post('/', restoreUser, async (req, res) => {
     const { user } = req;
@@ -36,24 +37,66 @@ router.post('/', restoreUser, async (req, res) => {
     }
 
 
-        const newSpot = await Spot.create({
-            ownerId: user.id,
-            address,
-            city,
-            state,
-            country,
-            lat,
-            lng,
-            name,
-            description,
-            price
-        });
+    const newSpot = await Spot.create({
+        ownerId: user.id,
+        address,
+        city,
+        state,
+        country,
+        lat,
+        lng,
+        name,
+        description,
+        price
+    });
 
-        return res.json(newSpot);
+    return res.json(newSpot);
 });
 
+// get all spots owned by current user
+router.get('/current', restoreUser, async (req, res) => {
+    const { user } = req;
 
 
+    const spots = await Spot.findAll({
+        where: { ownerId: user.id },
+        include: [
+            {
+                model: Review,
+                attributes: ['stars'],
+            },
+            {
+                model: SpotImage,
+                where: { preview: true },
+                required: false,
+                attributes: ['url'],
+            }
+        ],
+        attributes: ['id', 'ownerId', 'address', 'city', 'state', 'country', 'lat', 'lng', 'name', 'description', 'price', 'createdAt', 'updatedAt']
+    });
 
+    const spotsWithAvgRatingAndPreview = spots.map(spot => {
+        const spotJSON = spot.toJSON();
+
+        // calculate avgRating
+        if (spotJSON.Reviews.length) {
+            const avgRating = spotJSON.Reviews.reduce((acc, review) => acc + review.stars, 0) / spotJSON.Reviews.length;
+            spotJSON.avgRating = avgRating;
+        }
+
+        // add preview image
+        if (spotJSON.SpotImages.length) {
+            spotJSON.previewImage = spotJSON.SpotImages[0].url;
+        }
+
+        delete spotJSON.Reviews;
+        delete spotJSON.SpotImages;
+
+        return spotJSON;
+    });
+
+    return res.json({ Spots: spotsWithAvgRatingAndPreview });
+
+});
 
 module.exports = router;
