@@ -17,7 +17,6 @@ router.post('/', restoreUser, async (req, res) => {
     const { user } = req;
     const { address, city, state, country, lat, lng, name, description, price } = req.body;
 
-    // Server-side validation checks
     const validationErrors = [];
     if (!address) validationErrors.push({ field: 'address', message: 'Street address is required' });
     if (!city) validationErrors.push({ field: 'city', message: 'City is required' });
@@ -36,7 +35,7 @@ router.post('/', restoreUser, async (req, res) => {
         });
     }
 
-    try {
+
         const newSpot = await Spot.create({
             ownerId: user.id,
             address,
@@ -51,9 +50,6 @@ router.post('/', restoreUser, async (req, res) => {
         });
 
         return res.json(newSpot);
-    } catch (err) {
-        return res.status(500).json({ error: err.message });
-    }
 });
 
 
