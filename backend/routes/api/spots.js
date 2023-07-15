@@ -197,6 +197,25 @@ router.put('/:id', restoreUser, async (req, res) => {
 
 })
 
+//delete a spot
+router.delete('/:id', restoreUser, async(req, res) => {
+    const { user } = req
+    const { id } = req.params
+
+    const spot = await Spot.findOne({ where: { id }})
+
+    if (!spot) {
+        return res.status(404).json({ message: "Spot could not be found" })
+    }
+
+    if (spot.ownerId !== user.id) {
+        res.status(403).json({ message: "Forbidden" })
+    }
+
+    await spot.destroy()
+
+    return res.json({ message: "Successfully deleted"})
+})
 
 
 module.exports = router;
