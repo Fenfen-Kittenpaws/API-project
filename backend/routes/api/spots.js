@@ -7,9 +7,44 @@ const router = express.Router();
 
 // get all spots
 router.get('/', async (req, res) => {
-    const spots = await Spot.findAll();
+    const spots = await Spot.findAll({
+        include: [
+            {
+                model: Review,
+                attributes: ['stars'],
+            },
+            {
+                model: SpotImage,
+                where: { preview: true },
+                required: false,
+                attributes: ['url'],
+            }
+        ],
+        attributes: ['id', 'ownerId', 'address', 'city', 'state', 'country', 'lat', 'lng', 'name', 'description', 'price', 'createdAt', 'updatedAt']
+    });
 
-    return res.json(spots);
+    const spotsWithAvgRatingAndPreview = spots.map(spot => {
+        const spotJSON = spot.toJSON();
+
+        // calculate avgRating
+        if (spotJSON.Reviews.length) {
+            const avgRating = spotJSON.Reviews.reduce((acc, review) => acc + review.stars, 0) / spotJSON.Reviews.length;
+            spotJSON.avgRating = avgRating;
+        }
+
+        // add preview image
+        if (spotJSON.SpotImages.length) {
+            spotJSON.previewImage = spotJSON.SpotImages[0].url;
+        }
+
+        delete spotJSON.Reviews;
+        delete spotJSON.SpotImages;
+
+        return spotJSON;
+    });
+
+    return res.json({ Spots: spotsWithAvgRatingAndPreview });
+
 });
 
 
