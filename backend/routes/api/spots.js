@@ -1,5 +1,5 @@
 const express = require('express');
-const { Spot, Review, SpotImage } = require('../../db/models');
+const { Spot, Review, SpotImage, User } = require('../../db/models');
 const { restoreUser, requireAuth } = require('../../utils/auth');
 const { Op, Sequelize } = require('sequelize');
 
@@ -7,9 +7,44 @@ const router = express.Router();
 
 // get all spots
 router.get('/', async (req, res) => {
-    const spots = await Spot.findAll();
+    const spots = await Spot.findAll({
+        include: [
+            {
+                model: Review,
+                attributes: ['stars'],
+            },
+            {
+                model: SpotImage,
+                where: { preview: true },
+                required: false,
+                attributes: ['url'],
+            }
+        ],
+        attributes: ['id', 'ownerId', 'address', 'city', 'state', 'country', 'lat', 'lng', 'name', 'description', 'price', 'createdAt', 'updatedAt']
+    });
 
-    return res.json(spots);
+    const spotsWithAvgRatingAndPreview = spots.map(spot => {
+        const spotJSON = spot.toJSON();
+
+        // calculate avgRating
+        if (spotJSON.Reviews.length) {
+            const avgRating = spotJSON.Reviews.reduce((acc, review) => acc + review.stars, 0) / spotJSON.Reviews.length;
+            spotJSON.avgRating = avgRating;
+        }
+
+        // add preview image
+        if (spotJSON.SpotImages.length) {
+            spotJSON.previewImage = spotJSON.SpotImages[0].url;
+        }
+
+        delete spotJSON.Reviews;
+        delete spotJSON.SpotImages;
+
+        return spotJSON;
+    });
+
+    return res.json({ Spots: spotsWithAvgRatingAndPreview });
+
 });
 
 
@@ -57,7 +92,6 @@ router.post('/', restoreUser, async (req, res) => {
 router.get('/current', restoreUser, async (req, res) => {
     const { user } = req;
 
-
     const spots = await Spot.findAll({
         where: { ownerId: user.id },
         include: [
@@ -77,6 +111,7 @@ router.get('/current', restoreUser, async (req, res) => {
 
     const spotsWithAvgRatingAndPreview = spots.map(spot => {
         const spotJSON = spot.toJSON();
+        //console.log(spotJSON)
 
         // calculate avgRating
         if (spotJSON.Reviews.length) {
@@ -98,5 +133,149 @@ router.get('/current', restoreUser, async (req, res) => {
     return res.json({ Spots: spotsWithAvgRatingAndPreview });
 
 });
+
+//get details for a spot fron an id
+router.get('/:id', async (req, res) => {
+    const { id } = req.params
+
+    const spot = await Spot.findOne({
+        where: { id },
+        include: [
+            {
+                model: SpotImage,
+                as: 'SpotImages',
+                attributes: ['id', 'url', 'preview']
+            },
+            {
+                model: User,
+                as: 'Owner',
+                attributes: ['id', 'firstName', 'lastName']
+            },
+            {
+                model: Review,
+                as: 'Reviews'
+            }
+        ],
+        attributes: [
+            'id',
+            'ownerId',
+            'address',
+            'city',
+            'state',
+            'country',
+            'lat',
+            'lng',
+            'name',
+            'description',
+            'price',
+            'createdAt',
+            'updatedAt',
+            [Sequelize.fn('COUNT', Sequelize.col('Reviews.id')), 'numReviews'],
+            [Sequelize.fn('AVG', Sequelize.col('Reviews.stars')), 'avgStarRating']]
+
+    })
+
+    if (!spot) {
+        return res.status(404).json({ message: 'Spot could not be found' })
+    }
+
+    const spotJSON = spot.toJSON()
+
+    const numReviews = spotJSON.Reviews.length
+    const avgStarRating = spotJSON.Reviews.reduce((total, review) => total + review.stars, 0) / numReviews
+
+    delete spotJSON.Reviews
+
+    spotJSON.numReviews = numReviews
+    spotJSON.avgStarRating = avgStarRating
+
+    return res.json(spotJSON)
+
+})
+
+
+// Add image to a spot
+router.post('/:id/images', restoreUser, async (req, res) => {
+    const { user } = req;
+    const { id } = req.params;
+    const { url, preview } = req.body;
+
+    const spot = await Spot.findOne({ where: { id } });
+    if (!spot) {
+        return res.status(404).json({ error: 'Spot could not found' });
+    }
+
+    if (spot.ownerId !== user.id) {
+        res.status(403).json({ message: "Forbidden" })
+    }
+
+
+    const newImage = await SpotImage.create({
+        spotId: id,
+        url,
+        preview
+    });
+
+    return res.json({
+        id: newImage.id,
+        url: newImage.url,
+        preview: newImage.preview
+    });
+
+});
+
+//edit a spot
+router.put('/:id', restoreUser, async (req, res) => {
+    const { user } = req
+    const { id } = req.params
+    const { address, city, state, country, lat, lng, name, description, price } = req.body
+
+    const spot = await Spot.findOne({ where: { id } })
+
+    if (!spot) {
+        return res.status(404).json({ message: "Spot could not be found" })
+    }
+
+    if (spot.ownerId !== user.id) {
+        res.status(403).json({ message: "Forbidden" })
+    }
+
+
+    await spot.update({
+        address,
+        city,
+        state,
+        country,
+        lat,
+        lng,
+        name,
+        description,
+        price
+    })
+
+    return res.json(spot)
+
+})
+
+//delete a spot
+router.delete('/:id', restoreUser, async (req, res) => {
+    const { user } = req
+    const { id } = req.params
+
+    const spot = await Spot.findOne({ where: { id } })
+
+    if (!spot) {
+        return res.status(404).json({ message: "Spot could not be found" })
+    }
+
+    if (spot.ownerId !== user.id) {
+        res.status(403).json({ message: "Forbidden" })
+    }
+
+    await spot.destroy()
+
+    return res.json({ message: "Successfully deleted" })
+})
+
 
 module.exports = router;
