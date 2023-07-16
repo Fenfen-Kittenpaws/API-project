@@ -1,5 +1,5 @@
 const express = require('express');
-const { Spot, Review, SpotImage } = require('../../db/models');
+const { Spot, Review, SpotImage, User } = require('../../db/models');
 const { restoreUser, requireAuth } = require('../../utils/auth');
 const { Op, Sequelize } = require('sequelize');
 
@@ -134,6 +134,66 @@ router.get('/current', restoreUser, async (req, res) => {
 
 });
 
+//get details for a spot fron an id
+router.get('/:id', async (req, res) => {
+    const { id } = req.params
+
+    const spot = await Spot.findOne({
+        where: { id },
+        include: [
+            {
+                model: SpotImage,
+                as: 'SpotImages',
+                attributes: ['id', 'url', 'preview']
+            },
+            {
+                model: User,
+                as: 'Owner',
+                attributes: ['id', 'firstName', 'lastName']
+            },
+            {
+                model: Review,
+                as: 'Reviews'
+            }
+        ],
+        attributes: [
+            'id',
+            'ownerId',
+            'address',
+            'city',
+            'state',
+            'country',
+            'lat',
+            'lng',
+            'name',
+            'description',
+            'price',
+            'createdAt',
+            'updatedAt',
+            [Sequelize.fn('COUNT', Sequelize.col('Reviews.id')), 'numReviews'],
+            [Sequelize.fn('AVG', Sequelize.col('Reviews.stars')), 'avgStarRating']]
+
+    })
+
+    if (!spot) {
+        return res.status(404).json({ message: 'Spot could not be found' })
+    }
+
+    const spotJSON = spot.toJSON()
+
+    const numReviews = spotJSON.Reviews.length
+    const avgStarRating = spotJSON.Reviews.reduce((total, review) => total + review.stars, 0) / numReviews
+
+    delete spotJSON.Reviews
+
+    spotJSON.numReviews = numReviews
+    spotJSON.avgStarRating = avgStarRating
+
+    return res.json(spotJSON)
+
+})
+
+
 // Add image to a spot
 router.post('/:id/images', restoreUser, async (req, res) => {
     const { user } = req;
@@ -198,11 +258,11 @@ router.put('/:id', restoreUser, async (req, res) => {
 })
 
 //delete a spot
-router.delete('/:id', restoreUser, async(req, res) => {
+router.delete('/:id', restoreUser, async (req, res) => {
     const { user } = req
     const { id } = req.params
 
-    const spot = await Spot.findOne({ where: { id }})
+    const spot = await Spot.findOne({ where: { id } })
 
     if (!spot) {
         return res.status(404).json({ message: "Spot could not be found" })
@@ -214,7 +274,7 @@ router.delete('/:id', restoreUser, async(req, res) => {
 
     await spot.destroy()
 
-    return res.json({ message: "Successfully deleted"})
+    return res.json({ message: "Successfully deleted" })
 })
 
 
