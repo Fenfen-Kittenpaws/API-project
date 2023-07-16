@@ -20,7 +20,6 @@ router.get('/', async (req, res) => {
                 attributes: ['url'],
             }
         ],
-        attributes: ['id', 'ownerId', 'address', 'city', 'state', 'country', 'lat', 'lng', 'name', 'description', 'price', 'createdAt', 'updatedAt']
     });
 
     const spotsWithAvgRatingAndPreview = spots.map(spot => {
@@ -52,6 +51,7 @@ router.get('/', async (req, res) => {
 router.post('/', restoreUser, async (req, res) => {
     const { user } = req;
     const { address, city, state, country, lat, lng, name, description, price } = req.body;
+
 
     const validationErrors = [];
     if (!address) validationErrors.push({ field: 'address', message: 'Street address is required' });
@@ -134,7 +134,7 @@ router.get('/current', restoreUser, async (req, res) => {
 
 });
 
-//get details for a spot fron an id
+//get details for a spot from an id
 router.get('/:id', async (req, res) => {
     const { id } = req.params
 
@@ -155,23 +155,7 @@ router.get('/:id', async (req, res) => {
                 model: Review,
                 as: 'Reviews'
             }
-        ],
-        attributes: [
-            'id',
-            'ownerId',
-            'address',
-            'city',
-            'state',
-            'country',
-            'lat',
-            'lng',
-            'name',
-            'description',
-            'price',
-            'createdAt',
-            'updatedAt',
-            [Sequelize.fn('COUNT', Sequelize.col('Reviews.id')), 'numReviews'],
-            [Sequelize.fn('AVG', Sequelize.col('Reviews.stars')), 'avgStarRating']]
+        ]
 
     })
 
@@ -189,7 +173,27 @@ router.get('/:id', async (req, res) => {
     spotJSON.numReviews = numReviews
     spotJSON.avgStarRating = avgStarRating
 
-    return res.json(spotJSON)
+    const spotData = {
+        id: spot.id,
+        ownerId: spot.ownerId,
+        address: spot.address,
+        city: spot.city,
+        state: spot.state,
+        country: spot.country,
+        lat: spot.lat,
+        lng: spot.lng,
+        name: spot.name,
+        description: spot.description,
+        price: spot.price,
+        createdAt: spot.createdAt,
+        updatedAt: spot.updatedAt,
+        numReviews,
+        avgStarRating,
+        SpotImages: spot.SpotImages,
+        Owner: spot.Owner
+    };
+
+    return res.json(spotData)
 
 })
 
