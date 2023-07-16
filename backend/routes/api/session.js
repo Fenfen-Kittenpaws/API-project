@@ -71,6 +71,11 @@ router.post(
     '/',
     (req, res) => {
       const { user } = req;
+
+      if(!user){
+        return res.status(401).json({ message: "Authentication required"})
+      }
+      
       if (user) {
         const safeUser = {
           id: user.id,
