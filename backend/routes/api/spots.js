@@ -52,6 +52,9 @@ router.post('/', restoreUser, async (req, res) => {
     const { user } = req;
     const { address, city, state, country, lat, lng, name, description, price } = req.body;
 
+    if (!user) {
+        return res.status(401).json({ message: "Authentication required" })
+    }
 
     const validationErrors = [];
     if (!address) validationErrors.push({ field: 'address', message: 'Street address is required' });
@@ -91,6 +94,10 @@ router.post('/', restoreUser, async (req, res) => {
 // get all spots owned by current user
 router.get('/current', restoreUser, async (req, res) => {
     const { user } = req;
+
+    if (!user) {
+        return res.status(401).json({ message: "Authentication required" })
+    }
 
     const spots = await Spot.findAll({
         where: { ownerId: user.id },
@@ -204,6 +211,10 @@ router.post('/:id/images', restoreUser, async (req, res) => {
     const { id } = req.params;
     const { url, preview } = req.body;
 
+    if (!user) {
+        return res.status(401).json({ message: "Authentication required" })
+    }
+
     const spot = await Spot.findOne({ where: { id } });
     if (!spot) {
         return res.status(404).json({ message: 'Spot could not found' });
@@ -232,7 +243,11 @@ router.post('/:id/images', restoreUser, async (req, res) => {
 router.put('/:id', restoreUser, async (req, res) => {
     const { user } = req
     const { id } = req.params
-    const { address, city, state, country, lat, lng, name, description, price } = req.body
+    const { address, city, state, country, lat, lng, name, description, price } = req.body;
+
+    if (!user) {
+        return res.status(401).json({ message: "Authentication required" })
+    }
 
     const spot = await Spot.findOne({ where: { id } })
 
@@ -266,6 +281,10 @@ router.delete('/:id', restoreUser, async (req, res) => {
     const { user } = req
     const { id } = req.params
 
+    if (!user) {
+        return res.status(401).json({ message: "Authentication required" })
+    }
+
     const spot = await Spot.findOne({ where: { id } })
 
     if (!spot) {
@@ -282,14 +301,18 @@ router.delete('/:id', restoreUser, async (req, res) => {
 })
 
 //create a review for a spot based on the spot's id
-router.post('/:id/reviews', restoreUser, async(req, res) => {
+router.post('/:id/reviews', restoreUser, async (req, res) => {
     const { user } = req;
     const { id } = req.params;
     const { review, stars } = req.body;
 
+    if (!user) {
+        return res.status(401).json({ message: "Authentication required" })
+    }
+
     const validationErrors = [];
     if (!review) validationErrors.push({ field: 'review', message: 'Review text is required' });
-    if (!stars || isNaN(stars) || stars < 1 || stars >5 ) validationErrors.push({ field: 'stars', message: 'Stars must be an integer from 1 to 5' });
+    if (!stars || isNaN(stars) || stars < 1 || stars > 5) validationErrors.push({ field: 'stars', message: 'Stars must be an integer from 1 to 5' });
 
     if (validationErrors.length) {
         return res.status(400).json({
@@ -299,7 +322,7 @@ router.post('/:id/reviews', restoreUser, async(req, res) => {
     }
 
     const spot = await Spot.findByPk(id);
-    if(!spot){
+    if (!spot) {
         return res.status(404).json({ message: 'Spot could not be found' })
     }
 
@@ -310,7 +333,7 @@ router.post('/:id/reviews', restoreUser, async(req, res) => {
         }
     });
 
-    if(existingReview){
+    if (existingReview) {
         return res.status(500).json({ message: 'User already has a review for this spot' })
     }
 
