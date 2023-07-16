@@ -206,7 +206,7 @@ router.post('/:id/images', restoreUser, async (req, res) => {
 
     const spot = await Spot.findOne({ where: { id } });
     if (!spot) {
-        return res.status(404).json({ error: 'Spot could not found' });
+        return res.status(404).json({ message: 'Spot could not found' });
     }
 
     if (spot.ownerId !== user.id) {
@@ -279,6 +279,50 @@ router.delete('/:id', restoreUser, async (req, res) => {
     await spot.destroy()
 
     return res.json({ message: "Successfully deleted" })
+})
+
+//create a review for a spot based on the spot's id
+router.post('/:id/reviews', restoreUser, async(req, res) => {
+    const { user } = req;
+    const { id } = req.params;
+    const { review, stars } = req.body;
+
+    const validationErrors = [];
+    if (!review) validationErrors.push({ field: 'review', message: 'Review text is required' });
+    if (!stars || isNaN(stars) || stars < 1 || stars >5 ) validationErrors.push({ field: 'stars', message: 'Stars must be an integer from 1 to 5' });
+
+    if (validationErrors.length) {
+        return res.status(400).json({
+            message: 'Bad Request',
+            errors: validationErrors
+        });
+    }
+
+    const spot = await Spot.findByPk(id);
+    if(!spot){
+        return res.status(404).json({ message: 'Spot could not be found' })
+    }
+
+    const existingReview = await Review.findOne({
+        where: {
+            spotId: id,
+            userId: user.id
+        }
+    });
+
+    if(existingReview){
+        return res.status(500).json({ message: 'User already has a review for this spot' })
+    }
+
+    const newReview = await Review.create({
+        userId: user.id,
+        spotId: id,
+        review,
+        stars
+    });
+
+    return res.json(newReview)
+
 })
 
 
