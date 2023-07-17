@@ -1,7 +1,7 @@
 const express = require('express');
 const { Spot, Review, SpotImage, User, ReviewImage, Booking } = require('../../db/models');
 const { restoreUser } = require('../../utils/auth');
-const spot = require('../../db/models/spot');
+const { Op, Sequelize } = require('sequelize');
 
 const router = express.Router();
 
@@ -54,5 +54,72 @@ router.get('/current', restoreUser, async (req, res) => {
     res.json({ Bookings: data });
 })
 
+//Edit an existing booking
+router.put('/:id', restoreUser, async (req, res) => {
+    const { user } = req
+    const { id } = req.params
+    const { startDate, endDate } = req.body
+
+    if (!user) {
+        return res.status(401).json({ message: 'Authentication required' })
+    }
+
+    const booking = await Booking.findByPk(id)
+
+    if (!booking) {
+        return res.status(404).json({ message: 'Booking could not be found' })
+    }
+
+    if (booking.userId !== user.id) {
+        return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    if (new Date(booking.endDate) < new Date()) {
+        return res.status(403).json({ message: 'Past booking cannot be modified' })
+    }
+
+    if (new Date(endDate) <= new Date(startDate)) {
+        return res.status(400).json({
+            message: "Bad Request",
+            errors: {
+                endDate: "endDate cannot come before startDate"
+            }
+        })
+    }
+
+    const booked = await Booking.findOne({
+        where: {
+            spotId: booking.spotId,
+            startDate: { [Op.lte]: endDate },
+            endDate: { [Op.gte]: startDate },
+            id: { [Op.ne]: booking.id }
+        }
+    })
+
+    if (booked) {
+        return res.status(403).json({
+            message: 'Sorry, this spot is already booked for the specified dates',
+            errors: {
+                startDate: 'Start date conflicts with an existing booking',
+                endDate: 'End date conflicts with an existing booking',
+            }
+        })
+    }
+
+    booking.startDate = startDate;
+    booking.endDate = endDate;
+    await booking.save();
+
+    return res.json({
+        id: booking.id,
+        spotId: booking.spotId,
+        userId: booking.userId,
+        startDate: booking.startDate,
+        endDate: booking.endDate,
+        createdAt: booking.createdAt,
+        updatedAt: booking.updatedAt,
+    })
+
+})
 
 module.exports = router;
