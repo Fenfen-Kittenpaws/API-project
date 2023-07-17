@@ -439,5 +439,57 @@ router.post('/:id/bookings', restoreUser, async (req, res) => {
 
 })
 
+//Get all Bookings for a Spot based on the Spot's id
+router.get('/:id/bookings', restoreUser, async (req, res) => {
+    const { user } = req
+    const { id } = req.params
+
+    if (!user) {
+        return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const spot = await Spot.findByPk(id);
+
+    if (!spot) {
+        return res.status(404).json({ message: 'Spot could not be found' })
+    }
+
+    const bookings = await Booking.findAll({
+        where: { spotId: id },
+        include: [
+            {
+                model: User,
+                attributes: ['id', 'firstName', 'lastName']
+            }
+        ],
+        attributes: ['id', 'userId', 'spotId', 'startDate', 'endDate', 'createdAt', 'updatedAt']
+    })
+
+    const bookingsJSON = bookings.map(booking => {
+        const bookingData = booking.toJSON()
+
+        if (spot.ownerId !== user.id) {
+            return {
+                spotId: bookingData.spotId,
+                startDate: bookingData.startDate,
+                endDate: bookingData.endDate
+            }
+        } else {
+            return {
+                User: bookingData.User,
+                id: bookingData.id,
+                spotId: bookingData.spotId,
+                userId: bookingData.userId,
+                startDate: bookingData.startDate,
+                endDate: bookingData.endDate,
+                createdAt: bookingData.createdAt,
+                updatedAt: bookingData.updatedAt
+            }
+        }
+    })
+
+    return res.json({ Bookings: bookingsJSON });
+})
+
 
 module.exports = router;

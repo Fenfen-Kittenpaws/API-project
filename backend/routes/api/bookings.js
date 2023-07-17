@@ -54,4 +54,5 @@ router.get('/current', restoreUser, async (req, res) => {
     res.json({ Bookings: data });
 })
 
+
 module.exports = router;
