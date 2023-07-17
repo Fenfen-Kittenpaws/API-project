@@ -1,5 +1,5 @@
 const express = require('express');
-const { Spot, Review, SpotImage, User, ReviewImage } = require('../../db/models');
+const { Spot, Review, SpotImage, User, ReviewImage, Booking } = require('../../db/models');
 const { restoreUser, requireAuth } = require('../../utils/auth');
 const { Op, Sequelize } = require('sequelize');
 
@@ -376,5 +376,68 @@ router.get('/:id/reviews', async (req, res) => {
     return res.json({ Reviews: reviews })
 
 })
+
+//Create a Booking from a Spot based on the Spot's id
+router.post('/:id/bookings', restoreUser, async (req, res) => {
+    const { user } = req;
+    const { id } = req.params;
+    const { startDate, endDate } = req.body
+
+    if (!user) {
+        return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const spot = await Spot.findByPk(id);
+
+    if (!spot) {
+        return res.status(404).json({ message: 'Spot could not be found' })
+    }
+
+    if (spot.ownerId === user.id) {
+        return res.status(403).json({ message: 'You cannot book your own spot' })
+    }
+
+    if (new Date(endDate) <= new Date(startDate)) {
+        return res.status(400).json({
+            message: "Bad Request",
+            errors: {
+                endDate: "endDate cannot be on or before startDate",
+            },
+        })
+    }
+
+    const booked = await Booking.findOne({
+        where: {
+            spotId: id,
+            startDate: {
+                [Op.lte]: endDate
+            },
+            endDate: {
+                [Op.gte]: startDate
+            }
+        }
+    })
+
+    if (booked) {
+        return res.status(403).json({
+            message: "Sorry, this spot is already booked for the specified dates",
+            errors: {
+                startDate: "Start date conflicts with an existing booking",
+                endDate: "End date conflicts with an existing booking"
+            }
+        })
+    }
+
+    const newBooking = await Booking.create({
+        spotId: spot.id,
+        userId: user.id,
+        startDate,
+        endDate
+    })
+
+    return res.json(newBooking)
+
+})
+
 
 module.exports = router;
