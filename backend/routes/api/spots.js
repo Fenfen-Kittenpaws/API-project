@@ -349,13 +349,13 @@ router.post('/:id/reviews', restoreUser, async (req, res) => {
 })
 
 //Get all reviews by a spot's id
-router.get('/:id/reviews', async(req, res) => {
+router.get('/:id/reviews', async (req, res) => {
 
     const spotId = req.params.id;
 
     const spot = await Spot.findByPk(spotId);
 
-    if(!spot){
+    if (!spot) {
         return res.status(404).json({ message: 'Spot could not be found' })
     }
 
@@ -376,6 +376,5 @@ router.get('/:id/reviews', async(req, res) => {
     return res.json({ Reviews: reviews })
 
 })
-
 
 module.exports = router;
