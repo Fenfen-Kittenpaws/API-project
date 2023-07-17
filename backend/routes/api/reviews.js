@@ -87,4 +87,65 @@ router.post('/:id/images', restoreUser, async (req, res) => {
     return res.json(newImage)
 })
 
+//Edit a review
+router.put('/:id', restoreUser, async (req, res) => {
+    const { user } = req;
+    const { id } = req.params;
+    const { review, stars } = req.body;
+
+    if (!user) {
+        return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const validationErrors = [];
+    if (!review) validationErrors.push({ field: 'review', message: 'Review text is required' });
+    if (!stars || isNaN(stars) || stars < 1 || stars > 5) validationErrors.push({ field: 'stars', message: 'Stars must be an integer from 1 to 5' });
+
+    if (validationErrors.length) {
+        return res.status(400).json({
+            message: 'Bad Request',
+            errors: validationErrors
+        });
+    }
+
+    const reviewExists = await Review.findByPk(id)
+
+    if (!reviewExists) {
+        return res.status(404).json({ message: 'Review could not be found' })
+    }
+
+    if (reviewExists.userId !== user.id) {
+        res.status(403).json({ message: "Forbidden" })
+    }
+
+    await reviewExists.update({ review, stars })
+
+    return res.json(reviewExists)
+})
+
+//Delete a review
+router.delete('/:id', restoreUser, async (req, res) => {
+    const { user } = req;
+    const { id } = req.params;
+
+    if (!user) {
+        return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const reviewExists = await Review.findByPk(id)
+
+    if (!reviewExists) {
+        return res.status(404).json({ message: 'Review could not be found' })
+    }
+
+    if (reviewExists.userId !== user.id) {
+        res.status(403).json({ message: "Forbidden" })
+    }
+
+    await reviewExists.destroy()
+
+    return res.json({ message: 'Successfully deleted' })
+
+})
+
 module.exports = router;
