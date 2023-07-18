@@ -20,7 +20,8 @@ module.exports = {
         references: {
           model: 'Spots',
           key: 'id'
-        }
+        },
+        onDelete: "CASCADE"
       },
       userId: {
         type: Sequelize.INTEGER,
@@ -28,7 +29,7 @@ module.exports = {
         references: {
           model: 'Users',
           key: 'id'
-        }
+        },
       },
       review: {
         type: Sequelize.TEXT,
@@ -51,7 +52,7 @@ module.exports = {
     }, options);
   },
   down: async (queryInterface, Sequelize) => {
-    
+
     return queryInterface.dropTable("Reviews", options);
   }
 };
