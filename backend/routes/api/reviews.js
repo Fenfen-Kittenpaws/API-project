@@ -84,7 +84,12 @@ router.post('/:id/images', restoreUser, async (req, res) => {
         url
     })
 
-    return res.json(newImage)
+    const reviewImageData = {
+        id: newImage.id,
+        url: newImage.url
+    }
+
+    return res.json(reviewImageData)
 })
 
 //Edit a review
@@ -97,11 +102,11 @@ router.put('/:id', restoreUser, async (req, res) => {
         return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const validationErrors = [];
-    if (!review) validationErrors.push({ field: 'review', message: 'Review text is required' });
-    if (!stars || isNaN(stars) || stars < 1 || stars > 5) validationErrors.push({ field: 'stars', message: 'Stars must be an integer from 1 to 5' });
+    const validationErrors = {};
+    if (!review) validationErrors.review = 'Review text is required'
+    if (!stars || isNaN(stars) || stars < 1 || stars > 5) validationErrors.stars = 'Stars must be an integer from 1 to 5'
 
-    if (validationErrors.length) {
+    if (Object.keys(validationErrors).length) {
         return res.status(400).json({
             message: 'Bad Request',
             errors: validationErrors
