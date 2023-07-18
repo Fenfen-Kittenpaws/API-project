@@ -142,7 +142,7 @@ router.put('/:id', restoreUser, async (req, res) => {
             return res.status(404).json({ message: 'Booking could not be found' })
         }
 
-        if (booking.userId !== user.id) {
+        if (booking.userId !== user.id && booking.Spot.ownerId !== user.id) {
             return res.status(403).json({ message: 'Forbidden' });
         }
 

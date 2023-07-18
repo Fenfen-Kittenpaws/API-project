@@ -56,18 +56,18 @@ router.post('/', restoreUser, async (req, res) => {
         return res.status(401).json({ message: "Authentication required" })
     }
 
-    const validationErrors = [];
-    if (!address) validationErrors.push({ field: 'address', message: 'Street address is required' });
-    if (!city) validationErrors.push({ field: 'city', message: 'City is required' });
-    if (!state) validationErrors.push({ field: 'state', message: 'State is required' });
-    if (!country) validationErrors.push({ field: 'country', message: 'Country is required' });
-    if (!lat || isNaN(lat)) validationErrors.push({ field: 'lat', message: 'Latitude is not valid' });
-    if (!lng || isNaN(lng)) validationErrors.push({ field: 'lng', message: 'Longitude is not valid' });
-    if (!name || name.length > 50) validationErrors.push({ field: 'name', message: 'Name must be less than 50 characters' });
-    if (!description) validationErrors.push({ field: 'description', message: 'Description is required' });
-    if (!price || isNaN(price)) validationErrors.push({ field: 'price', message: 'Price per day is required' });
+    const validationErrors = {};
+    if (!address) validationErrors.address = 'Street address is required'
+    if (!city) validationErrors.city = 'City is required'
+    if (!state) validationErrors.state = 'State is required'
+    if (!country) validationErrors.country = 'Country is required'
+    if (!lat || isNaN(lat)) validationErrors.lat = 'Latitude is not valid'
+    if (!lng || isNaN(lng)) validationErrors.lng = 'Longitude is not valid'
+    if (!name || name.length > 50) validationErrors.name = 'Name must be less than 50 characters'
+    if (!description) validationErrors.descrition = 'Description is required'
+    if (!price || isNaN(price)) validationErrors.price = 'Price per day is required'
 
-    if (validationErrors.length) {
+    if (Object.keys(validationErrors).length) {
         return res.status(400).json({
             message: 'Bad Request',
             errors: validationErrors
@@ -259,6 +259,23 @@ router.put('/:id', restoreUser, async (req, res) => {
         res.status(403).json({ message: "Forbidden" })
     }
 
+    const validationErrors = {};
+    if (!address) validationErrors.address = 'Street address is required'
+    if (!city) validationErrors.city = 'City is required'
+    if (!state) validationErrors.state = 'State is required'
+    if (!country) validationErrors.country = 'Country is required'
+    if (!lat || isNaN(lat)) validationErrors.lat = 'Latitude is not valid'
+    if (!lng || isNaN(lng)) validationErrors.lng = 'Longitude is not valid'
+    if (!name || name.length > 50) validationErrors.name = 'Name must be less than 50 characters'
+    if (!description) validationErrors.descrition = 'Description is required'
+    if (!price || isNaN(price)) validationErrors.price = 'Price per day is required'
+
+    if (Object.keys(validationErrors).length) {
+        return res.status(400).json({
+            message: 'Bad Request',
+            errors: validationErrors
+        });
+    }
 
     await spot.update({
         address,
@@ -310,11 +327,11 @@ router.post('/:id/reviews', restoreUser, async (req, res) => {
         return res.status(401).json({ message: "Authentication required" })
     }
 
-    const validationErrors = [];
-    if (!review) validationErrors.push({ field: 'review', message: 'Review text is required' });
-    if (!stars || isNaN(stars) || stars < 1 || stars > 5) validationErrors.push({ field: 'stars', message: 'Stars must be an integer from 1 to 5' });
+    const validationErrors = {};
+    if (!review) validationErrors.review = 'Review text is required'
+    if (!stars || isNaN(stars) || stars < 1 || stars > 5) validationErrors.stars =  'Stars must be an integer from 1 to 5'
 
-    if (validationErrors.length) {
+    if (Object.keys(validationErrors).length) {
         return res.status(400).json({
             message: 'Bad Request',
             errors: validationErrors
