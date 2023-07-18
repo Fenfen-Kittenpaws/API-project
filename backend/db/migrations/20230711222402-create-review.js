@@ -30,6 +30,7 @@ module.exports = {
           model: 'Users',
           key: 'id'
         },
+        onDelete: "CASCADE"
       },
       review: {
         type: Sequelize.TEXT,
