@@ -41,11 +41,11 @@ router.get('/current', restoreUser, async (req, res) => {
     const reviewsWithPreviewImage = reviews.map(review => {
         const reviewJSON = review.toJSON();
 
-        if (reviewJSON.Spot.SpotImages.length) {
+        if (reviewJSON.Spot.SpotImages && reviewJSON.Spot.SpotImages.length) {
             reviewJSON.Spot.previewImage = reviewJSON.Spot.SpotImages[0].url
         }
 
-        delete reviewJSON.Spot.SpotImage
+        delete reviewJSON.Spot.SpotImages
 
         return reviewJSON
     })
