@@ -264,8 +264,8 @@ router.put('/:id', restoreUser, async (req, res) => {
     if (!city) validationErrors.city = 'City is required'
     if (!state) validationErrors.state = 'State is required'
     if (!country) validationErrors.country = 'Country is required'
-    if (!lat || isNaN(lat)) validationErrors.lat = 'Latitude is not valid'
-    if (!lng || isNaN(lng)) validationErrors.lng = 'Longitude is not valid'
+    if (!lat || isNaN(lat) || lat < -90 || lat > 90) validationErrors.lat = 'Latitude is not valid'
+    if (!lng || isNaN(lng) || lng < -180 || lng > 180) validationErrors.lng = 'Longitude is not valid'
     if (!name || name.length > 50) validationErrors.name = 'Name must be less than 50 characters'
     if (!description) validationErrors.descrition = 'Description is required'
     if (!price || isNaN(price)) validationErrors.price = 'Price per day is required'
@@ -329,7 +329,7 @@ router.post('/:id/reviews', restoreUser, async (req, res) => {
 
     const validationErrors = {};
     if (!review) validationErrors.review = 'Review text is required'
-    if (!stars || isNaN(stars) || stars < 1 || stars > 5) validationErrors.stars =  'Stars must be an integer from 1 to 5'
+    if (!stars || isNaN(stars) || stars < 1 || stars > 5) validationErrors.stars = 'Stars must be an integer from 1 to 5'
 
     if (Object.keys(validationErrors).length) {
         return res.status(400).json({
