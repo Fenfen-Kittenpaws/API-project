@@ -87,6 +87,16 @@ router.put('/:id', restoreUser, async (req, res) => {
         })
     }
 
+    if (new Date(startDate) < new Date() || new Date(endDate) < new Date()) {
+        return res.status(400).json({
+            message: "Bad Request",
+            errors: {
+                startDate: "startDate cannot be in the past",
+                endDate: "endDate cannot be in the past",
+            },
+        })
+    }
+
     const booked = await Booking.findOne({
         where: {
             spotId: booking.spotId,
