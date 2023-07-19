@@ -73,7 +73,13 @@ router.get('/current', restoreUser, async (req, res) => {
             })
         };
 
-        return reviewDTO;
+        if (reviewJSON.Spot.SpotImages && reviewJSON.Spot.SpotImages.length) {
+            reviewJSON.Spot.previewImage = reviewJSON.Spot.SpotImages[0].url
+        }
+
+        delete reviewJSON.Spot.SpotImages
+
+        return reviewJSON
     })
 
     res.json({ Reviews: reviewsWithPreviewImage });
