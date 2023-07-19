@@ -75,7 +75,7 @@ router.post(
       if(!user){
         return res.status(401).json({ message: "Authentication required"})
       }
-      
+
       if (user) {
         const safeUser = {
           id: user.id,
@@ -88,5 +88,7 @@ router.post(
       } else return res.json({ user: null });
     }
   );
+
+  //adding
 
   module.exports = router;
