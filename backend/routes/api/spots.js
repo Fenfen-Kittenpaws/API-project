@@ -7,6 +7,56 @@ const router = express.Router();
 
 // get all spots
 router.get('/', async (req, res) => {
+
+    const {
+        page = 1,
+        size = 20,
+        minLat,
+        maxLat,
+        minLng,
+        maxLng,
+        minPrice,
+        maxPrice
+    } = req.query;
+
+    // Validate query parameters
+    if (page < 1 || size < 1 || (maxPrice && maxPrice < 0) || (minPrice && minPrice < 0)) {
+        return res.status(400).json({
+            message: "Bad Request",
+            errors: {
+                page: "Page must be greater than or equal to 1",
+                size: "Size must be greater than or equal to 1",
+                maxLat: "Maximum latitude is invalid",
+                minLat: "Minimum latitude is invalid",
+                minLng: "Maximum longitude is invalid",
+                maxLng: "Minimum longitude is invalid",
+                minPrice: "Minimum price must be greater than or equal to 0",
+                maxPrice: "Maximum price must be greater than or equal to 0"
+            }
+        });
+    }
+
+    const where = {};
+
+    if (minLat && maxLat) {
+        where.lat = { [Op.between]: [minLat, maxLat] };
+    }
+
+    if (minLng && maxLng) {
+        where.lng = { [Op.between]: [minLng, maxLng] };
+    }
+
+    if (minPrice) {
+        where.price = { [Op.gte]: minPrice };
+    }
+
+    if (maxPrice) {
+        where.price = { [Op.lte]: maxPrice };
+    }
+
+    const offset = (page - 1) * size;
+    const limit = parseInt(size);
+
     const spots = await Spot.findAll({
         include: [
             {
@@ -20,6 +70,8 @@ router.get('/', async (req, res) => {
                 attributes: ['url'],
             }
         ],
+        offset,
+        limit
     });
 
     const spotsWithAvgRatingAndPreview = spots.map(spot => {
@@ -42,8 +94,11 @@ router.get('/', async (req, res) => {
         return spotJSON;
     });
 
-    return res.json({ Spots: spotsWithAvgRatingAndPreview });
-
+    return res.json({
+        Spots: spotsWithAvgRatingAndPreview,
+        page,
+        size
+    });
 });
 
 
