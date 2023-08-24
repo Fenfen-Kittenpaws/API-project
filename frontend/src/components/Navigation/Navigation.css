@@ -1,0 +1,74 @@
+/* General Styles */
+ul {
+    display: flex;
+    flex-direction: row;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background-color: #333;
+  }
+
+  li {
+    margin: 0 15px;
+    padding: 15px;
+    cursor: pointer;
+  }
+
+  /* NavLink Styles */
+  NavLink {
+    text-decoration: none;
+    color: #fff;
+  }
+
+  NavLink.active {
+    border-bottom: 2px solid #f565d6;
+  }
+
+  /* Profile Button and Dropdown */
+  .profile-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #333;
+    border: 1px solid #ccc;
+    width: 200px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: none;  /* Initially hidden */
+    z-index: 1;
+  }
+
+  .profile-dropdown li {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .profile-dropdown li:last-child {
+    border-bottom: none;
+  }
+
+  .profile-dropdown.show {
+    display: block;
+  }
+
+  button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: #0056b3;
+  }
+
+  .fas.fa-user-circle {
+    font-size: 24px;
+    color: #d4f710;
+  }
+
+  .hidden {
+    display: none;
+  }
